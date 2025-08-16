@@ -1,5 +1,5 @@
-django
+Django
 djangorestframework
 python-dotenv
-requests
 pymysql
+requests

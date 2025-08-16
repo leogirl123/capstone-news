@@ -1,40 +1,49 @@
-from pathlib import Path
+"""
+Django settings for newsportal project (MariaDB + Docker ready).
+"""
+
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-# Optional: load .env if you create one later (won't crash if missing)
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except Exception:
-    pass
+# Load environment variables from .env file
+load_dotenv()
 
+# Base directory of the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-insecure-secret-key-change-me")
-DEBUG = True
-ALLOWED_HOSTS: list[str] = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv("SECRET_KEY", "replace_this_with_a_real_secret")
 
-# APPS
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv("DEBUG", "0") in ("1", "true", "True", "yes", "YES")
+
+# Hosts allowed to connect
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
+
+# CSRF trusted origins for forms & API
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://0.0.0.0:8000",
+]
+
+# Installed applications
 INSTALLED_APPS = [
-    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    # Third-party
     "rest_framework",
-
-    # Local
-    "core.apps.CoreConfig",   # ensures signals are loaded
+    "core.apps.CoreConfig",  # your app
 ]
 
+# Custom user model
 AUTH_USER_MODEL = "core.User"
 
-# MIDDLEWARE
+# Middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -45,15 +54,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# URL configuration
 ROOT_URLCONF = "newsportal.urls"
 
-# TEMPLATES
+# Templates
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # project-level templates (base.html, login.html)
-        "DIRS": [BASE_DIR / "newsportal" / "templates"],
-        "APP_DIRS": True,
+        "DIRS": [BASE_DIR / "templates"],  # <--- IMPORTANT
+        "APP_DIRS": True,                  # <--- IMPORTANT
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -65,22 +74,43 @@ TEMPLATES = [
     },
 ]
 
+# WSGI application
 WSGI_APPLICATION = "newsportal.wsgi.application"
 
-# DATABASE — use SQLite for development. then switch to MariaDB later.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "newsportal",
-        "USER": "newsuser",
-        "PASSWORD": "AppPasswordHere",
-        "HOST": "127.0.0.1",  # match the working host
-        "PORT": "3307",       # match the MariaDB port
-        "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
-    }
-}
+# Database backend selection
+DB_BACKEND = os.getenv("DB_BACKEND", "sqlite").lower()
 
-# PASSWORD VALIDATION
+# MariaDB/MySQL driver shim
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
+if DB_BACKEND == "mysql":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.getenv("MYSQL_DATABASE", "newsdb"),
+            "USER": os.getenv("MYSQL_USER", "newsuser"),
+            "PASSWORD": os.getenv("MYSQL_PASSWORD", "newspass"),
+            "HOST": os.getenv("MYSQL_HOST", "db"),
+            "PORT": int(os.getenv("MYSQL_PORT", "3306")),
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -88,33 +118,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# I18N / TZ
+# Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# STATIC
+# Static files
 STATIC_URL = "static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "newsportal" / "static"  # create later if you want; safe if missing
-]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# EMAIL (dev)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-# AUTH redirects
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
-
-# DRF defaults
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-}

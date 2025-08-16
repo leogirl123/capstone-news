@@ -3,6 +3,11 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import timezone
 from .models import Article
 
+
+from django.shortcuts import render
+
+def home(request):
+    return render(request, "index.html")
 def public_article_list(request):
     articles = Article.objects.filter(approved=True).order_by("-approved_at")
     return render(request, "core/public_article_list.html", {"articles": articles})
