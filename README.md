@@ -1,19 +1,13 @@
-# NewsPortal – Django Capstone
-
-A news application where Readers view approved articles, Editors review/approve, and Journalists publish. Includes DRF API filtered by Reader subscriptions. Final database: MariaDB (port 3307).
-
-## Tech
-- Django 5
-- Django REST Framework
-- Custom User model (roles: Reader, Editor, Journalist)
-- Groups/permissions auto-managed via signals
-- MariaDB (PyMySQL) on Windows
-
-## Setup
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+﻿# News Application (Django Capstone)
+## Local (venv)
+py -m venv .venv
+S:\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py createsuperuser
 python manage.py runserver
+## Docs
+sphinx-build -b html docs docs\_build\html
+## Docker
+docker build -t news-app:latest .
+docker run --rm --env-file .env news-app:latest python manage.py migrate
+docker run --rm -p 8000:8000 --env-file .env news-app:latest
