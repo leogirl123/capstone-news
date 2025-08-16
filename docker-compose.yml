@@ -1,0 +1,33 @@
+﻿services:
+  db:
+    image: mariadb:11
+    container_name: capstone_db
+    environment:
+      MARIADB_DATABASE: ${MYSQL_DATABASE:-newsdb}
+      MARIADB_USER: ${MYSQL_USER:-newsuser}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD:-newspass}
+      MARIADB_ROOT_PASSWORD: rootpass
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -uroot -prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  web:
+    build: .
+    container_name: capstone_web
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+
+volumes:
+  db_data:
