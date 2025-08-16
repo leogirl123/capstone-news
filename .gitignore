@@ -1,0 +1,14 @@
+﻿__pycache__/
+*.py[cod]
+.venv/
+.env
+*.env
+.DS_Store
+Thumbs.db
+*.log
+*.sqlite3
+media/
+staticfiles/
+.vscode/
+.idea/
+# keep docs/_build for this task

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Latest Articles{% endblock %}
+{% block content %}
+<h1 class="mb-3">Latest Articles</h1>
+<div class="list-group">
+  {% for a in articles %}
+    <a class="list-group-item list-group-item-action" href="/articles/{{ a.id }}/">
+      <div class="d-flex w-100 justify-content-between">
+        <h5 class="mb-1">{{ a.title }}</h5>
+        <small>By {{ a.author.username }} {% if a.publisher %}@ {{ a.publisher.name }}{% else %}(Independent){% endif %}</small>
+      </div>
+      <p class="mb-1">{{ a.body|truncatechars:140 }}</p>
+      <small>Approved {{ a.approved_at }}</small>
+    </a>
+  {% empty %}
+    <p>No articles yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

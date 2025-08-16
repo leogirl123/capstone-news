@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Editor Dashboard{% endblock %}
+{% block content %}
+<h1>Pending Articles</h1>
+<table class="table">
+  <thead><tr><th>Title</th><th>Author</th><th>Publisher</th><th></th></tr></thead>
+  <tbody>
+  {% for a in pending %}
+    <tr>
+      <td>{{ a.title }}</td>
+      <td>{{ a.author.username }}</td>
+      <td>{% if a.publisher %}{{ a.publisher.name }}{% else %}-{% endif %}</td>
+      <td><a class="btn btn-success btn-sm" href="/articles/{{ a.id }}/approve/">Approve</a></td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">Nothing to approve.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
